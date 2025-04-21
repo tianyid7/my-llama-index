@@ -3,3 +3,5 @@ storage
 .env
 output
 .ui/
+.idea
+.venv
