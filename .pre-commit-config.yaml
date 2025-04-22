@@ -1,0 +1,30 @@
+repos:
+  -   repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v4.4.0 # From example on: https://pre-commit.com/
+      hooks:
+        -   id: check-json
+        -   id: check-yaml
+        -   id: end-of-file-fixer
+            exclude_types: ["svg"]
+        -   id: trailing-whitespace
+  -   repo: https://github.com/psf/black
+      rev: 23.7.0 # From example on: https://pre-commit.com/
+      hooks:
+        -   id: black
+            exclude: ^copier|^dags/common/proto
+            language_version: python3
+  -   repo: https://github.com/timothycrosley/isort
+      rev: 5.12.0  # Latest from: https://github.com/timothycrosley/isort/releases
+      hooks:
+        -   id: isort
+            args: ["--profile", "black"]
+            exclude: ^dags/common/proto
+  -  repo: https://codeberg.org/frnmst/md-toc
+     rev: 8.2.0
+     hooks:
+       -   id: md-toc
+           args: [-p, 'cmark', '-l3']
+#  -  repo: https://github.com/astral-sh/uv-pre-commit
+#     rev: 0.6.8
+#     hooks:
+#       - id: uv-lock
