@@ -66,6 +66,8 @@ class QueryEngineManager:
 
         self.query_engine = self._create_query_engine()
 
+        logger.info("Initiated Query Engine Manager")
+
     def _create_retriever(self):
         base_retriever = self.base_index.as_retriever(
             similarity_top_k=self.similarity_top_k
@@ -73,7 +75,6 @@ class QueryEngineManager:
 
         # Choose between retrieval strategies and configurations.
         if self.retrieval_strategy == "auto_merging":
-            logger.info(self.base_index.storage_context.docstore)
             retriever = AutoMergingRetriever(
                 base_retriever, self.base_index.storage_context, verbose=True
             )

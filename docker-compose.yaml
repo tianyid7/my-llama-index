@@ -3,15 +3,15 @@ services:
     hostname: pgvector
     image: ankane/pgvector
     ports:
-      - 5432:5432
+      - "5431:5432"
     restart: always
     environment:
       - POSTGRES_DB=vectordb
-      - POSTGRES_USER=pgvector
-      - POSTGRES_PASSWORD=pgvector
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
       - POSTGRES_HOST_AUTH_METHOD=trust
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "pgvector" ]
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
       interval: 10s
       retries: 5
       start_period: 5s
@@ -20,7 +20,7 @@ services:
       - pgvector_data:/data
     networks:
       - llamaindex
-  relational_db:
+  postgres:
     image: postgres:15.2-alpine
     command: -c 'max_connections=250'
     restart: always

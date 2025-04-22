@@ -25,19 +25,19 @@ class IndexManager:
         pgvector_conn: str,
         pgvector_table: str,
         redis_host: str,
+        redis_port: int = 6379,
     ):
         # Stores
         self.pgvector_conn = pgvector_conn
         self.pgvector_table = pgvector_table
         self.redis_host = redis_host
+        self.redis_port = redis_port
 
         self.embed_model = Settings.embed_model
 
-        self.base_index = self._create_vector_index(
-            pgvector_conn=self.pgvector_conn,
-            pgvector_table=self.pgvector_table,
-            redis_host=self.redis_host,
-        )
+        self.base_index = None
+
+        logger.info("Initiated Index Manager")
 
     def get_current_index_info(self) -> dict:
         """Return the indices currently being used"""
@@ -61,25 +61,19 @@ class IndexManager:
             "summary": self.base_index.summary,
         }
 
-    def _create_vector_index(
-        self,
-        pgvector_conn: str,
-        pgvector_table: str,
-        redis_host: str,
-        redis_port: int = 6379,
-    ) -> VectorStoreIndex:
+    def create_vector_index(self) -> VectorStoreIndex:
         """
         Returns a VectorStoreIndex object which contains a storage context
         """
         # Create the vector store
-        url = make_url(pgvector_conn)
+        url = make_url(self.pgvector_conn)
         vector_store = PGVectorStore.from_params(
             database=url.database,
             host=url.host,
             password=url.password,
             port=url.port,
             user=url.username,
-            table_name=pgvector_table,
+            table_name=self.pgvector_table,
             embed_dim=1536,
             hnsw_kwargs={
                 "hnsw_m": 16,
@@ -91,14 +85,14 @@ class IndexManager:
 
         # Create the document store
         docstore = RedisDocumentStore.from_host_and_port(
-            host=redis_host,
-            port=redis_port,
+            host=self.redis_host,
+            port=self.redis_port,
             namespace="llama_index_doc",  # TODO: make this configurable
         )
 
         # Create the index store
         index_store = RedisIndexStore.from_host_and_port(
-            host=redis_host, port=redis_port, namespace="llama_index"
+            host=self.redis_host, port=self.redis_port, namespace="llama_index"
         )
 
         # Create storage context
@@ -110,4 +104,7 @@ class IndexManager:
         vector_store_index = VectorStoreIndex(
             nodes=[], storage_context=storage_context, embed_model=self.embed_model
         )
+
+        self.base_index = vector_store_index
+
         return vector_store_index

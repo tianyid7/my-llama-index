@@ -27,10 +27,10 @@ def create_workflow(chat_request: Optional[ChatRequest] = None) -> AgentWorkflow
 
 def create_workflow_v1(chat_request: Optional[ChatRequest] = None) -> AgentWorkflow:
     index = IndexManager(
-        pgvector_conn="postgresql://pgvector:pgvector@localhost:5432/vectordb",
-        pgvector_table="documents",
+        pgvector_conn="postgresql://postgres:postgres@localhost:5431/vectordb",
+        pgvector_table="document",
         redis_host="localhost",
-    ).base_index
+    ).create_vector_index()
 
     if index is None:
         raise RuntimeError(
