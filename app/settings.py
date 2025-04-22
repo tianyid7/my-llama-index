@@ -1,7 +1,7 @@
 from llama_index.core import Settings
 from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.llms.openai import OpenAI
-from rag.prompts import Prompts
+from prompts import Prompts
 
 
 def init_settings(provider: str = "openai"):
