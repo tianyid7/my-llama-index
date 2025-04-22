@@ -1,0 +1,55 @@
+services:
+  pgvector:
+    hostname: pgvector
+    image: ankane/pgvector
+    ports:
+      - 5432:5432
+    restart: always
+    environment:
+      - POSTGRES_DB=vectordb
+      - POSTGRES_USER=pgvector
+      - POSTGRES_PASSWORD=pgvector
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "pgvector" ]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - pgvector_data:/data
+    networks:
+      - llamaindex
+  relational_db:
+    image: postgres:15.2-alpine
+    command: -c 'max_connections=250'
+    restart: always
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/data
+    networks:
+      - llamaindex
+  redis:
+    image: redis:7.4-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    # docker silently mounts /data even without an explicit volume mount, which enables
+    # persistence. explicitly setting save and appendonly forces ephemeral behavior.
+    command: redis-server --save "" --appendonly no
+    networks:
+      - llamaindex
+
+volumes:
+  pgvector_data:
+    driver: local
+  postgres_data:
+    driver: local
+
+networks:
+  llamaindex:
+    driver: bridge
