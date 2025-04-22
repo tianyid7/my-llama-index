@@ -39,8 +39,6 @@ class IndexManager:
             redis_host=self.redis_host,
         )
 
-        self.query_engine = None
-
     def get_current_index_info(self) -> dict:
         """Return the indices currently being used"""
         return {

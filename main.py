@@ -2,10 +2,11 @@ import logging
 import os
 import subprocess
 
-from app.settings import init_settings
-from app.workflow import create_workflow
 from dotenv import load_dotenv
 from llama_index.server import LlamaIndexServer, UIConfig
+
+from app.settings import init_settings
+from app.workflow import create_workflow, create_workflow_v1
 
 logger = logging.getLogger("uvicorn")
 

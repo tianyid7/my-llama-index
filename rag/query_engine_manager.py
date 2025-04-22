@@ -1,11 +1,6 @@
 import logging
 
 import Stemmer
-from async_extensions import (
-    AsyncHyDEQueryTransform,
-    AsyncRetrieverQueryEngine,
-    AsyncTransformQueryEngine,
-)
 from llama_index.core import (
     PromptTemplate,
     Settings,
@@ -15,13 +10,19 @@ from llama_index.core import (
 from llama_index.core.response_synthesizers import ResponseMode
 from llama_index.core.retrievers import AutoMergingRetriever, QueryFusionRetriever
 from llama_index.core.retrievers.fusion_retriever import FUSION_MODES
+from llama_index.core.tools import QueryEngineTool
 from llama_index.postprocessor.presidio import PresidioPIINodePostprocessor
 from llama_index.retrievers.bm25 import BM25Retriever
-from node_reranker import CustomLLMRerank
-from retrievers.parent_retriever import ParentRetriever
-from retrievers.qa_followup_retriever import QAFollowupRetriever, QARetriever
 
 from app.prompts import Prompts
+from rag.async_extensions import (
+    AsyncHyDEQueryTransform,
+    AsyncRetrieverQueryEngine,
+    AsyncTransformQueryEngine,
+)
+from rag.node_reranker import CustomLLMRerank
+from rag.retrievers.parent_retriever import ParentRetriever
+from rag.retrievers.qa_followup_retriever import QAFollowupRetriever, QARetriever
 
 logging.basicConfig(level=logging.INFO)  # Set the desired logging level
 logger = logging.getLogger(__name__)
@@ -184,3 +185,19 @@ class QueryEngineManager:
             )
 
         return query_engine
+
+    def get_query_engine_tool(self, name, description):
+        """
+        Returns a llamaindex QueryEngineTool
+        """
+        if self.query_engine is None:
+            raise ValueError(
+                "Query engine not created. Call _create_query_engine first."
+            )
+
+        query_engine_tool = QueryEngineTool.from_defaults(
+            query_engine=self.query_engine,
+            name=name,
+            description=description,
+        )
+        return query_engine_tool
