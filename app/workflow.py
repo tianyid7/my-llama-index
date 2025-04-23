@@ -25,11 +25,7 @@ def create_workflow(chat_request: Optional[ChatRequest] = None) -> AgentWorkflow
     )
 
 
-index = IndexManager(
-    pgvector_conn="postgresql://postgres:postgres@localhost:5431/vectordb",
-    pgvector_table="document",
-    redis_host="localhost",
-).create_vector_index()
+index = IndexManager().base_index
 
 query_tool = QueryEngineManager(base_index=index).get_query_engine_tool(
     name="query_tool",
