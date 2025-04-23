@@ -57,11 +57,7 @@ def generate_index_to_pgvector():
         recursive=True,
     )
     documents = reader.load_data()
-    index = IndexManager(
-        pgvector_conn="postgresql://postgres:postgres@localhost:5431/vectordb",
-        pgvector_table="document",
-        redis_host="localhost",
-    ).create_vector_index(documents)
+    IndexManager().create_vector_index_with_docs(documents)
 
 
 def generate_ui_for_workflow():
