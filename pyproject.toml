@@ -9,6 +9,7 @@ readme = "README.md"
 [tool.poetry.scripts]
 generate = "generate:generate_index"
 "generate:index" = "generate:generate_index"
+"generate:pgvector_index" = "generate:generate_index_to_pgvector"
 "generate:ui" = "generate:generate_ui_for_workflow"
 dev = "main:run('dev')"
 prod = "main:run('prod')"

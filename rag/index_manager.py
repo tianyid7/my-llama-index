@@ -1,6 +1,7 @@
 import logging
+from typing import List
 
-from llama_index.core import Settings, StorageContext, VectorStoreIndex
+from llama_index.core import Document, Settings, StorageContext, VectorStoreIndex
 from llama_index.storage.docstore.redis import RedisDocumentStore
 from llama_index.storage.index_store.redis import RedisIndexStore
 from llama_index.vector_stores.postgres import PGVectorStore
@@ -24,12 +25,14 @@ class IndexManager:
         self,
         pgvector_conn: str,
         pgvector_table: str,
-        redis_host: str,
+        hybrid_search: bool = False,
+        redis_host: str = "localhost",
         redis_port: int = 6379,
     ):
         # Stores
         self.pgvector_conn = pgvector_conn
         self.pgvector_table = pgvector_table
+        self.hybrid_search = hybrid_search
         self.redis_host = redis_host
         self.redis_port = redis_port
 
@@ -61,7 +64,7 @@ class IndexManager:
             "summary": self.base_index.summary,
         }
 
-    def create_vector_index(self) -> VectorStoreIndex:
+    def create_vector_index(self, documents: List[Document] = None) -> VectorStoreIndex:
         """
         Returns a VectorStoreIndex object which contains a storage context
         """
@@ -75,6 +78,7 @@ class IndexManager:
             user=url.username,
             table_name=self.pgvector_table,
             embed_dim=1536,
+            hybrid_search=self.hybrid_search,
             hnsw_kwargs={
                 "hnsw_m": 16,
                 "hnsw_ef_construction": 64,
@@ -101,9 +105,18 @@ class IndexManager:
         )
 
         # Create and return the index
-        vector_store_index = VectorStoreIndex(
-            nodes=[], storage_context=storage_context, embed_model=self.embed_model
-        )
+        if documents:
+            vector_store_index = VectorStoreIndex.from_documents(
+                documents,
+                storage_context=storage_context,
+                embed_model=self.embed_model,
+                show_progress=True,
+            )
+        else:
+            # Create an empty index
+            vector_store_index = VectorStoreIndex(
+                nodes=[], storage_context=storage_context, embed_model=self.embed_model
+            )
 
         self.base_index = vector_store_index
 
