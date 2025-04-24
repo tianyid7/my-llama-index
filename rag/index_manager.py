@@ -32,9 +32,7 @@ class IndexManager:
 
         self.embed_model = Settings.embed_model
 
-        self.base_index: VectorStoreIndex = self._create_base_vector_index()
-
-    def _create_base_vector_index(self) -> VectorStoreIndex:
+    def create_base_vector_index(self) -> VectorStoreIndex:
         """
         Returns a Base VectorStoreIndex object which contains a storage context
         """
@@ -112,3 +110,7 @@ class IndexManager:
         )
 
         return vector_store_index
+
+
+# Create a singleton base index
+BASE_VECTOR_INDEX = IndexManager().create_base_vector_index()

@@ -7,7 +7,7 @@ from llama_index.server.api.models import ChatRequest
 from llama_index.server.tools.index import get_query_engine_tool
 
 from app.index import get_index
-from rag.index_manager import IndexManager
+from rag.index_manager import BASE_VECTOR_INDEX
 from rag.query_engine_manager import QueryEngineManager
 
 
@@ -25,7 +25,7 @@ def create_workflow(chat_request: Optional[ChatRequest] = None) -> AgentWorkflow
     )
 
 
-index = IndexManager().base_index
+index = BASE_VECTOR_INDEX
 
 query_tool = QueryEngineManager(base_index=index).get_query_engine_tool(
     name="query_tool",
