@@ -18,16 +18,24 @@ prod = "main:run('prod')"
 python = ">=3.11,<3.14"
 python-dotenv = "^1.0.0"
 aiostream = "==0.5.2"
+celery = "==5.5.1"
+boto3 = "==1.38.2"
 llama-index-core = "==0.12.28"
 llama-index-server = "==0.1.14"
 llama-index-retrievers-bm25 = "==0.5.2"
-llama-index-readers-confluence = "==0.3.1"
 llama-index-postprocessor-presidio = "==0.3.0"
-# Stores
+
+[tool.poetry.group.llama-index-stores.dependencies]
 llama-index-vector-stores-postgres = "==0.4.2"
 llama-index-storage-docstore-redis = "==0.3.0"
 llama-index-storage-index-store-redis = "==0.4.0"
-celery = "==5.5.1"
+
+[tool.poetry.group.llama-index-readers.dependencies]
+llama-index-readers-web = "==0.3.9"
+llama-index-readers-confluence = "==0.3.1"
+llama-index-readers-database = "==0.3.0"
+llama-index-readers-github = "==0.6.0"
+llama-index-readers-slack = "==0.3.1"
 
 [tool.poetry.dependencies.docx2txt]
 version = "^0.8"
