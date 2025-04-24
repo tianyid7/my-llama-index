@@ -15,6 +15,7 @@ from llama_index.postprocessor.presidio import PresidioPIINodePostprocessor
 from llama_index.retrievers.bm25 import BM25Retriever
 
 from app.prompts import Prompts
+from common.decorators import singleton
 from rag.post_processors.node_reranker import CustomLLMRerank
 from rag.query_engines.async_extensions import (
     AsyncHyDEQueryTransform,
@@ -28,6 +29,7 @@ logging.basicConfig(level=logging.INFO)  # Set the desired logging level
 logger = logging.getLogger(__name__)
 
 
+@singleton
 class QueryEngineManager:
     query_engine: AsyncRetrieverQueryEngine | None = None
 
@@ -64,9 +66,18 @@ class QueryEngineManager:
 
         self.prompts = Prompts()
 
-        self.query_engine = self._create_query_engine()
+        self._query_engine = self._create_query_engine()
 
         logger.info("Initiated Query Engine Manager")
+
+    @property
+    def query_engine(self) -> AsyncRetrieverQueryEngine:
+        """
+        Returns the query engine.
+        """
+        if self._query_engine is None:
+            raise ValueError("Query engine not initialized.")
+        return self._query_engine
 
     def _create_retriever(self):
         base_retriever = self.base_index.as_retriever(

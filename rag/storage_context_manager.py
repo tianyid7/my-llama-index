@@ -6,6 +6,7 @@ from llama_index.storage.index_store.redis import RedisIndexStore
 from llama_index.vector_stores.postgres import PGVectorStore
 from sqlalchemy import make_url
 
+from common.decorators import singleton
 from configs.rag_config import (
     DOC_STORE,
     DOC_STORE_NAMESPACE,
@@ -24,6 +25,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+@singleton
 class StorageContextManager:
     """
     A manager for managing the storage context.
@@ -34,7 +36,18 @@ class StorageContextManager:
         self.docstore = None
         self.index_store = None
 
-    def create_storage_context(self) -> StorageContext:
+        self._storage_context = self._create_storage_context()
+
+    @property
+    def storage_context(self) -> StorageContext:
+        """
+        Returns the storage context.
+        """
+        if self._storage_context is None:
+            raise ValueError("Storage context is not initialized.")
+        return self._storage_context
+
+    def _create_storage_context(self) -> StorageContext:
         """
         Create a storage context with the vector store (pgvector), document store (pgvector), and index store (redis).
         """

@@ -4,23 +4,36 @@ from typing import List
 from llama_index.core import Document, Settings, VectorStoreIndex
 from llama_index.core.schema import BaseNode
 
+from common.decorators import singleton
 from rag.storage_context_manager import StorageContextManager
 
 logging.basicConfig(level=logging.INFO)  # Set the desired logging level
 logger = logging.getLogger(__name__)
 
 
+@singleton
 class IndexManager:
     """
     This class manages vector index stores
     """
 
     def __init__(self):
-        self.storage_context = StorageContextManager().create_storage_context()
+        self.storage_context = StorageContextManager().storage_context
 
         self.embed_model = Settings.embed_model
 
-    def create_base_vector_index(self) -> VectorStoreIndex:
+        self._base_index = self._create_base_vector_index()
+
+    @property
+    def base_index(self) -> VectorStoreIndex:
+        """
+        Returns the base vector index.
+        """
+        if self._base_index is None:
+            raise ValueError("Base index is not initialized.")
+        return self._base_index
+
+    def _create_base_vector_index(self) -> VectorStoreIndex:
         """
         Returns a Base VectorStoreIndex object which contains a storage context
         """
@@ -68,7 +81,3 @@ class IndexManager:
         )
 
         return vector_store_index
-
-
-# Create a singleton base index
-BASE_VECTOR_INDEX = IndexManager().create_base_vector_index()
