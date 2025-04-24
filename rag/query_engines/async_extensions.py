@@ -1,7 +1,7 @@
 """Extensions to Llamaindex Base classes to allow for asynchronous execution"""
 
-from collections.abc import Sequence
 import logging
+from collections.abc import Sequence
 
 from llama_index.core.base.response.schema import RESPONSE_TYPE
 from llama_index.core.callbacks import CallbackManager
@@ -38,11 +38,11 @@ class AsyncTransformQueryEngine(BaseQueryEngine):
     )
 
     def __init__(
-            self,
-            query_engine: BaseQueryEngine,
-            query_transform: BaseQueryTransform,
-            transform_metadata: dict | None = None,
-            callback_manager: CallbackManager | None = None,
+        self,
+        query_engine: BaseQueryEngine,
+        query_transform: BaseQueryTransform,
+        transform_metadata: dict | None = None,
+        callback_manager: CallbackManager | None = None,
     ) -> None:
         self._query_engine = query_engine
         self._query_transform = query_transform
@@ -63,10 +63,10 @@ class AsyncTransformQueryEngine(BaseQueryEngine):
         return await self._query_engine.aretrieve(query_bundle)
 
     def synthesize(
-            self,
-            query_bundle: QueryBundle,
-            nodes: list[NodeWithScore],
-            additional_source_nodes: Sequence[NodeWithScore] | None = None,
+        self,
+        query_bundle: QueryBundle,
+        nodes: list[NodeWithScore],
+        additional_source_nodes: Sequence[NodeWithScore] | None = None,
     ) -> RESPONSE_TYPE:
         query_bundle = self._query_transform.run(
             query_bundle, metadata=self._transform_metadata
@@ -78,9 +78,9 @@ class AsyncTransformQueryEngine(BaseQueryEngine):
         )
 
     async def arun(
-            self,
-            query_bundle_or_str: QueryType,
-            metadata: dict | None = None,
+        self,
+        query_bundle_or_str: QueryType,
+        metadata: dict | None = None,
     ) -> QueryBundle:
         """Run query transform."""
         metadata = metadata or {}
@@ -95,10 +95,10 @@ class AsyncTransformQueryEngine(BaseQueryEngine):
         return await self._query_transform._arun(query_bundle, metadata=metadata)
 
     async def asynthesize(
-            self,
-            query_bundle: QueryBundle,
-            nodes: list[NodeWithScore],
-            additional_source_nodes: Sequence[NodeWithScore] | None = None,
+        self,
+        query_bundle: QueryBundle,
+        nodes: list[NodeWithScore],
+        additional_source_nodes: Sequence[NodeWithScore] | None = None,
     ) -> RESPONSE_TYPE:
         query_bundle = await self._query_transform._arun(
             query_bundle, metadata=self._transform_metadata
@@ -136,10 +136,10 @@ class AsyncHyDEQueryTransform(BaseQueryTransform):
     """
 
     def __init__(
-            self,
-            llm=None,
-            hyde_prompt: BasePromptTemplate | None = None,
-            include_original: bool = True,
+        self,
+        llm=None,
+        hyde_prompt: BasePromptTemplate | None = None,
+        include_original: bool = True,
     ) -> None:
         """Initialize HyDEQueryTransform.
 
@@ -199,7 +199,7 @@ class AsyncRetrieverQueryEngine(RetrieverQueryEngine):
     to allow for asynchronous post-processing"""
 
     async def _apply_node_postprocessors(
-            self, nodes: list[NodeWithScore], query_bundle: QueryBundle
+        self, nodes: list[NodeWithScore], query_bundle: QueryBundle
     ) -> list[NodeWithScore]:
         """Apply node postprocessors."""
         for node_postprocessor in self._node_postprocessors:

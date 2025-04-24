@@ -1,8 +1,9 @@
 """Node Re-ranker class for async execution"""
 
-from collections.abc import Callable
 import logging
+from collections.abc import Callable
 
+import requests
 from llama_index.core import QueryBundle, Settings
 from llama_index.core.bridge.pydantic import Field, PrivateAttr
 from llama_index.core.indices.utils import (
@@ -16,7 +17,6 @@ from llama_index.core.prompts.default_prompts import DEFAULT_CHOICE_SELECT_PROMP
 from llama_index.core.prompts.mixin import PromptDictType
 from llama_index.core.schema import NodeWithScore, TextNode
 from llama_index.core.service_context import ServiceContext
-import requests
 
 logging.basicConfig(level=logging.INFO)  # Set the desired logging level
 logger = logging.getLogger(__name__)
@@ -65,6 +65,7 @@ def call_reranker(query, records, google_token):
     response.raise_for_status()  # Raise an error if the request failed
     return response.json()
 
+
 #
 # class GoogleReRankerSecretSauce(BaseNodePostprocessor):
 #     def _postprocess_nodes(
@@ -107,24 +108,24 @@ class CustomLLMRerank(BaseNodePostprocessor):
     _parse_choice_select_answer_fn: Callable = PrivateAttr()
 
     def __init__(
-            self,
-            llm: LLM | None = None,
-            choice_select_prompt: BasePromptTemplate | None = None,
-            choice_batch_size: int = 10,
-            format_node_batch_fn: Callable | None = None,
-            parse_choice_select_answer_fn: Callable | None = None,
-            service_context: ServiceContext | None = None,
-            top_n: int = 10,
+        self,
+        llm: LLM | None = None,
+        choice_select_prompt: BasePromptTemplate | None = None,
+        choice_batch_size: int = 10,
+        format_node_batch_fn: Callable | None = None,
+        parse_choice_select_answer_fn: Callable | None = None,
+        service_context: ServiceContext | None = None,
+        top_n: int = 10,
     ) -> None:
         choice_select_prompt = choice_select_prompt or DEFAULT_CHOICE_SELECT_PROMPT
 
         llm = llm or Settings.llm
 
         self._format_node_batch_fn = (
-                format_node_batch_fn or default_format_node_batch_fn
+            format_node_batch_fn or default_format_node_batch_fn
         )
         self._parse_choice_select_answer_fn = (
-                parse_choice_select_answer_fn or default_parse_choice_select_answer_fn
+            parse_choice_select_answer_fn or default_parse_choice_select_answer_fn
         )
 
         super().__init__(
@@ -149,10 +150,10 @@ class CustomLLMRerank(BaseNodePostprocessor):
         return "LLMRerank"
 
     async def postprocess_nodes(
-            self,
-            nodes: list[NodeWithScore],
-            query_bundle: QueryBundle | None = None,
-            query_str: str | None = None,
+        self,
+        nodes: list[NodeWithScore],
+        query_bundle: QueryBundle | None = None,
+        query_str: str | None = None,
     ) -> list[NodeWithScore]:
         """Postprocess nodes."""
         if query_str is not None and query_bundle is not None:
@@ -164,9 +165,9 @@ class CustomLLMRerank(BaseNodePostprocessor):
         return await self._postprocess_nodes(nodes, query_bundle)
 
     async def _postprocess_nodes(
-            self,
-            nodes: list[NodeWithScore],
-            query_bundle: QueryBundle | None = None,
+        self,
+        nodes: list[NodeWithScore],
+        query_bundle: QueryBundle | None = None,
     ) -> list[NodeWithScore]:
         if query_bundle is None:
             raise ValueError("Query bundle must be provided.")
@@ -214,5 +215,5 @@ class CustomLLMRerank(BaseNodePostprocessor):
             )
 
         return sorted(initial_results, key=lambda x: x.score or 0.0, reverse=True)[
-               : self.top_n
-               ]
+            : self.top_n
+        ]

@@ -15,12 +15,12 @@ from llama_index.postprocessor.presidio import PresidioPIINodePostprocessor
 from llama_index.retrievers.bm25 import BM25Retriever
 
 from app.prompts import Prompts
-from rag.async_extensions import (
+from rag.post_processors.node_reranker import CustomLLMRerank
+from rag.query_engines.async_extensions import (
     AsyncHyDEQueryTransform,
     AsyncRetrieverQueryEngine,
     AsyncTransformQueryEngine,
 )
-from rag.node_reranker import CustomLLMRerank
 from rag.retrievers.parent_retriever import ParentRetriever
 from rag.retrievers.qa_followup_retriever import QAFollowupRetriever, QARetriever
 
