@@ -1,92 +1,13 @@
 import logging
 from typing import List
 
-from llama_index.core import Document, Settings, StorageContext, VectorStoreIndex
-from llama_index.storage.docstore.redis import RedisDocumentStore
-from llama_index.storage.index_store.redis import RedisIndexStore
-from llama_index.vector_stores.postgres import PGVectorStore
-from sqlalchemy import make_url
+from llama_index.core import Document, Settings, VectorStoreIndex
+from llama_index.core.schema import BaseNode
 
-from configs.rag_config import (
-    DOC_STORE,
-    DOC_STORE_NAMESPACE,
-    EMBED_DIM,
-    HYBRID_SEARCH_ENABLED,
-    INDEX_STORE,
-    INDEX_STORE_NAMESPACE,
-    PGVECTOR_CONN_STR,
-    PGVECTOR_TABLE,
-    REDIS_HOST,
-    REDIS_PORT,
-    VECTOR_DB,
-)
+from rag.storage_context_manager import StorageContextManager
 
 logging.basicConfig(level=logging.INFO)  # Set the desired logging level
 logger = logging.getLogger(__name__)
-
-
-def create_storage_context() -> StorageContext:
-    """
-    Create a storage context with the vector store (pgvector), document store (pgvector), and index store (redis).
-    """
-    vector_store = None
-    docstore = None
-    index_store = None
-
-    # Create the vector store
-    if VECTOR_DB == "pgvector":
-        if not PGVECTOR_CONN_STR or not PGVECTOR_TABLE:
-            raise ValueError("PGVECTOR_CONN_STR and PGVECTOR_TABLE must be set.")
-
-        url = make_url(PGVECTOR_CONN_STR)
-        vector_store = PGVectorStore.from_params(
-            database=url.database,
-            host=url.host,
-            password=url.password,
-            port=url.port,
-            user=url.username,
-            table_name=PGVECTOR_TABLE,
-            embed_dim=EMBED_DIM,
-            hybrid_search=HYBRID_SEARCH_ENABLED,
-            hnsw_kwargs={
-                "hnsw_m": 16,
-                "hnsw_ef_construction": 64,
-                "hnsw_ef_search": 40,
-                "hnsw_dist_method": "vector_cosine_ops",
-            },
-        )
-
-    # Create the document store
-    if DOC_STORE == "redis":
-        if not REDIS_PORT or not REDIS_HOST:
-            raise ValueError("REDIS_PORT and REDIS_HOST must be set.")
-
-        docstore = RedisDocumentStore.from_host_and_port(
-            host=REDIS_HOST,
-            port=REDIS_PORT,
-            namespace=DOC_STORE_NAMESPACE,
-        )
-
-    # Create the index store
-    if INDEX_STORE == "redis":
-        if not REDIS_PORT or not REDIS_HOST:
-            raise ValueError("REDIS_PORT and REDIS_HOST must be set.")
-
-        index_store = RedisIndexStore.from_host_and_port(
-            host=REDIS_HOST, port=REDIS_PORT, namespace=INDEX_STORE_NAMESPACE
-        )
-
-    # If no vector store is created, raise an error
-    if vector_store is None:
-        raise ValueError(
-            "No vector store created. Please check your configuration 'VECTOR_DB'."
-        )
-
-    return StorageContext.from_defaults(
-        vector_store=vector_store,
-        docstore=docstore,
-        index_store=index_store,
-    )
 
 
 class IndexManager:
@@ -95,7 +16,7 @@ class IndexManager:
     """
 
     def __init__(self):
-        self.storage_context = create_storage_context()
+        self.storage_context = StorageContextManager().create_storage_context()
 
         self.embed_model = Settings.embed_model
 
@@ -115,7 +36,7 @@ class IndexManager:
         self, documents: List[Document]
     ) -> VectorStoreIndex:
         """
-        Create a vector index with the given documents.
+        Create a vector index with the given documents. No need to specify transformation to parse documents into nodes.
         """
         vector_store_index = VectorStoreIndex.from_documents(
             documents,
@@ -126,6 +47,24 @@ class IndexManager:
 
         logger.info(
             f"Created a vector store index with docs: {vector_store_index.summary}"
+        )
+
+        return vector_store_index
+
+    def create_vector_index_with_nodes(self, nodes: List[BaseNode]) -> VectorStoreIndex:
+        """
+        Create a vector index with the given nodes. This is called after the transformations by ingestion pipelines
+         and nodes are parsed.
+        """
+        vector_store_index = VectorStoreIndex(
+            nodes=nodes,
+            storage_context=self.storage_context,
+            embed_model=self.embed_model,
+            show_progress=True,
+        )
+
+        logger.info(
+            f"Created a vector store index with {len(nodes)} nodes: {vector_store_index.summary}"
         )
 
         return vector_store_index

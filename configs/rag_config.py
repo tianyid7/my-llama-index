@@ -3,6 +3,10 @@ import os
 # This file contains the configuration for the RAG (Retrieval-Augmented Generation) system.
 # It includes settings for the vector store, document store, and index store, etc.
 
+VECTOR_DB = os.getenv("VECTOR_DB", "pgvector")
+DOC_STORE = os.getenv("DOC_STORE", "redis")
+INDEX_STORE = os.getenv("INDEX_STORE", "redis")
+
 # ********* pgvector configs ********* #
 PGVECTOR_CONN_STR = os.getenv(
     "PGVECTOR_CONN_STR", "postgresql://postgres:postgres@localhost:5431/vectordb"

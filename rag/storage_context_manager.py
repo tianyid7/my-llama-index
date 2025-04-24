@@ -1,0 +1,95 @@
+import logging
+
+from llama_index.core import StorageContext
+from llama_index.storage.docstore.redis import RedisDocumentStore
+from llama_index.storage.index_store.redis import RedisIndexStore
+from llama_index.vector_stores.postgres import PGVectorStore
+from sqlalchemy import make_url
+
+from configs.rag_config import (
+    DOC_STORE,
+    DOC_STORE_NAMESPACE,
+    EMBED_DIM,
+    HYBRID_SEARCH_ENABLED,
+    INDEX_STORE,
+    INDEX_STORE_NAMESPACE,
+    PGVECTOR_CONN_STR,
+    PGVECTOR_TABLE,
+    REDIS_HOST,
+    REDIS_PORT,
+    VECTOR_DB,
+)
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+class StorageContextManager:
+    """
+    A manager for managing the storage context.
+    """
+
+    def __init__(self):
+        self.vector_store = None
+        self.docstore = None
+        self.index_store = None
+
+    def create_storage_context(self) -> StorageContext:
+        """
+        Create a storage context with the vector store (pgvector), document store (pgvector), and index store (redis).
+        """
+
+        # Create the vector store
+        if VECTOR_DB == "pgvector":
+            if not PGVECTOR_CONN_STR or not PGVECTOR_TABLE:
+                raise ValueError("PGVECTOR_CONN_STR and PGVECTOR_TABLE must be set.")
+
+            url = make_url(PGVECTOR_CONN_STR)
+            self.vector_store = PGVectorStore.from_params(
+                database=url.database,
+                host=url.host,
+                password=url.password,
+                port=url.port,
+                user=url.username,
+                table_name=PGVECTOR_TABLE,
+                embed_dim=EMBED_DIM,
+                hybrid_search=HYBRID_SEARCH_ENABLED,
+                hnsw_kwargs={
+                    "hnsw_m": 16,
+                    "hnsw_ef_construction": 64,
+                    "hnsw_ef_search": 40,
+                    "hnsw_dist_method": "vector_cosine_ops",
+                },
+            )
+
+        # Create the document store
+        if DOC_STORE == "redis":
+            if not REDIS_PORT or not REDIS_HOST:
+                raise ValueError("REDIS_PORT and REDIS_HOST must be set.")
+
+            self.docstore = RedisDocumentStore.from_host_and_port(
+                host=REDIS_HOST,
+                port=REDIS_PORT,
+                namespace=DOC_STORE_NAMESPACE,
+            )
+
+        # Create the index store
+        if INDEX_STORE == "redis":
+            if not REDIS_PORT or not REDIS_HOST:
+                raise ValueError("REDIS_PORT and REDIS_HOST must be set.")
+
+            self.index_store = RedisIndexStore.from_host_and_port(
+                host=REDIS_HOST, port=REDIS_PORT, namespace=INDEX_STORE_NAMESPACE
+            )
+
+        # If no vector store is created, raise an error
+        if self.vector_store is None:
+            raise ValueError(
+                "No vector store created. Please check your configuration 'VECTOR_DB'."
+            )
+
+        return StorageContext.from_defaults(
+            vector_store=self.vector_store,
+            docstore=self.docstore,
+            index_store=self.index_store,
+        )
