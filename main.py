@@ -11,7 +11,7 @@ from app.workflow import create_workflow, create_workflow_v1
 logger = logging.getLogger("uvicorn.debug")
 
 # A path to a directory where the customized UI code is stored
-COMPONENT_DIR = "components"
+COMPONENT_DIR = "frontend/components"
 
 
 def create_app():
