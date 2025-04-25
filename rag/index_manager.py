@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Optional
 
 from llama_index.core import Document, Settings, VectorStoreIndex
 from llama_index.core.schema import BaseNode
@@ -46,7 +46,7 @@ class IndexManager:
         return vector_store_index
 
     def create_vector_index_with_docs(
-        self, documents: List[Document]
+        self, documents: List[Document], transformations: Optional[List[str]] = None
     ) -> VectorStoreIndex:
         """
         Create a vector index with the given documents. No need to specify transformation to parse documents into nodes.
@@ -56,6 +56,7 @@ class IndexManager:
             storage_context=self.storage_context,
             embed_model=self.embed_model,
             show_progress=True,
+            transformations=transformations,
         )
 
         logger.info(
@@ -64,7 +65,9 @@ class IndexManager:
 
         return vector_store_index
 
-    def create_vector_index_with_nodes(self, nodes: List[BaseNode]) -> VectorStoreIndex:
+    def create_vector_index_with_nodes(
+        self, nodes: List[BaseNode], transformations: Optional[List[str]] = None
+    ) -> VectorStoreIndex:
         """
         Create a vector index with the given nodes. This is called after the transformations by ingestion pipelines
          and nodes are parsed.
@@ -74,6 +77,7 @@ class IndexManager:
             storage_context=self.storage_context,
             embed_model=self.embed_model,
             show_progress=True,
+            transformations=transformations,
         )
 
         logger.info(

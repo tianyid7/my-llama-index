@@ -1,6 +1,7 @@
 import logging
-from typing import List, Optional, Sequence
+from typing import List, Sequence
 
+from llama_index.core import Settings
 from llama_index.core.ingestion import IngestionCache, IngestionPipeline
 from llama_index.core.readers.base import BaseReader
 from llama_index.core.schema import BaseNode, TransformComponent
@@ -24,32 +25,33 @@ logger = logging.getLogger(__name__)
 
 
 def prepare_transformations(
-    transformations: Optional[List[NodeParser | MetadataExtractor | str]] = None,
+    transformations: List[NodeParser | MetadataExtractor | str],
     **kwargs,
 ) -> List[TransformComponent]:
     """
     Prepare the transformations for the pipeline.
     """
-    if not transformations:
-        return []
-
     result = []
     for t in transformations:
         transformation = getattr(PROVIDED_TRANSFORMATIONS, t)(kwargs)
         result.append(transformation)
+
+    # Add the embed model to the end of the pipeline since we specify vector store
+    result.append(Settings.embed_model)
 
     return result
 
 
 class IngestionPipelineBuilder:
     """
-    A manager for the ingestion pipeline.
+    A manager for the ingestion pipeline, with the reader, transformations.
     """
 
     def __init__(
         self,
         reader: BaseReader,
         transformations: List[NodeParser | MetadataExtractor | str],
+        num_workers: int = 4,
         **kwargs,
     ):
         self.reader = reader
@@ -58,6 +60,7 @@ class IngestionPipelineBuilder:
             raise ValueError("Transformations must be provided.")
 
         self.transformations = prepare_transformations(transformations, **kwargs)
+        self.num_workers = num_workers
 
         self.pipeline: IngestionPipeline | None = None
 
@@ -66,6 +69,7 @@ class IngestionPipelineBuilder:
 
         pipeline = IngestionPipeline(
             transformations=self.transformations,
+            vector_store=vector_index.vector_store,
             docstore=vector_index.docstore,
             cache=IngestionCache(
                 cache=RedisCache.from_host_and_port(REDIS_HOST, REDIS_PORT),
@@ -81,4 +85,6 @@ class IngestionPipelineBuilder:
     def run_pipeline(self) -> Sequence[BaseNode]:
         documents = self.reader.load_data()
 
-        return self.pipeline.run(documents=documents, show_progress=True, num_workers=4)
+        return self.pipeline.run(
+            documents=documents, show_progress=True, num_workers=self.num_workers
+        )
