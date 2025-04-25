@@ -13,6 +13,7 @@ from configs.rag_config import (
     REDIS_HOST,
     REDIS_PORT,
 )
+from indexing.readers.reader import Reader
 from indexing.transformations.metadata_extractors.metadata_extractor import (
     MetadataExtractor,
 )
@@ -42,6 +43,17 @@ def prepare_transformations(
     return result
 
 
+def prepare_reader(
+    reader: Reader | str,
+    **kwargs,
+) -> BaseReader:
+    """
+    Prepare the transformations for the pipeline.
+    """
+    reader = getattr(PROVIDED_TRANSFORMATIONS, reader)(kwargs)
+    return reader
+
+
 class IngestionPipelineBuilder:
     """
     A manager for the ingestion pipeline, with the reader, transformations.
@@ -49,12 +61,12 @@ class IngestionPipelineBuilder:
 
     def __init__(
         self,
-        reader: BaseReader,
+        reader: Reader | str,
         transformations: List[NodeParser | MetadataExtractor | str],
         num_workers: int = 4,
         **kwargs,
     ):
-        self.reader = reader
+        self.reader = prepare_reader(reader, **kwargs)
 
         if not transformations:
             raise ValueError("Transformations must be provided.")
