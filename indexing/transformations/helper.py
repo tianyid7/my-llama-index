@@ -309,7 +309,8 @@ class TransformationConfig(BaseModel):
 
 
 def prepare_transformations(
-    transformations: List[str], config: TransformationConfig
+    transformations: List[NodeParser | MetadataExtractor | str],
+    config: TransformationConfig,
 ) -> List[TransformComponent]:
     """
     Prepare the transformations.
