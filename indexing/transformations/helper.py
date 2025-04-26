@@ -8,6 +8,13 @@ from llama_index.core.extractors import (
     SummaryExtractor,
     TitleExtractor,
 )
+from llama_index.core.extractors.interface import DEFAULT_NODE_TEXT_TEMPLATE
+from llama_index.core.extractors.metadata_extractors import (
+    DEFAULT_QUESTION_GEN_TMPL,
+    DEFAULT_SUMMARY_EXTRACT_TEMPLATE,
+    DEFAULT_TITLE_COMBINE_TEMPLATE,
+    DEFAULT_TITLE_NODE_TEMPLATE,
+)
 from llama_index.core.node_parser import (
     CodeSplitter,
     HierarchicalNodeParser,
@@ -117,8 +124,8 @@ PROVIDED_TRANSFORMATIONS = {
 
 
 class NodeParserParams(BaseModel):
-    include_metadata: Optional[bool] = None
-    include_prev_next_rel: Optional[bool] = None
+    include_metadata: Optional[bool] = True
+    include_prev_next_rel: Optional[bool] = True
 
 
 class HTMLNodeParserParams(NodeParserParams):
@@ -147,7 +154,7 @@ class HierarchicalNodeParserParams(NodeParserParams):
 
     chunk_sizes: Optional[list[int]] = [1024, 512, 256]
     node_parser_ids: Optional[list[str]] = None
-    node_parser_map: dict[str, str]
+    node_parser_map: Optional[dict[str, str]] = None
 
 
 class CodeSplitterParams(NodeParserParams):
@@ -220,13 +227,13 @@ class MetadataExtractorParams(BaseModel):
     See https://docs.llamaindex.ai/en/stable/api_reference/extractors/#llama_index.core.extractors.interface.BaseExtractor
     """
 
-    is_text_node_only: Optional[bool] = None
-    show_progress: Optional[bool] = None
-    metadata_mode: Optional[str] = None
-    node_text_template: Optional[str] = None
-    disable_template_rewrite: Optional[bool] = None
-    in_place: Optional[bool] = None
-    num_workers: Optional[int] = None
+    is_text_node_only: Optional[bool] = True
+    show_progress: Optional[bool] = True
+    metadata_mode: Optional[str] = "all"
+    node_text_template: Optional[str] = DEFAULT_NODE_TEXT_TEMPLATE
+    disable_template_rewrite: Optional[bool] = False
+    in_place: Optional[bool] = True
+    num_workers: Optional[int] = 4
 
 
 class SummaryExtractorParams(MetadataExtractorParams):
@@ -242,7 +249,7 @@ class SummaryExtractorParams(MetadataExtractorParams):
         "prev",
         "next",
     ]  # List of summaries to be extracted: 'self', 'prev', 'next'
-    prompt_template: Optional[str] = None
+    prompt_template: Optional[str] = DEFAULT_SUMMARY_EXTRACT_TEMPLATE
 
 
 class QuestionsAnsweredExtractorParams(MetadataExtractorParams):
@@ -253,9 +260,9 @@ class QuestionsAnsweredExtractorParams(MetadataExtractorParams):
     llm: Use Settings.llm by default.
     """
 
-    questions: Optional[List[int]] = None
-    prompt_template: Optional[str] = None
-    embedding_only: Optional[bool] = None
+    questions: Optional[int] = 5
+    prompt_template: Optional[str] = DEFAULT_QUESTION_GEN_TMPL
+    embedding_only: Optional[bool] = True
 
 
 class TitleExtractorParams(MetadataExtractorParams):
@@ -266,16 +273,16 @@ class TitleExtractorParams(MetadataExtractorParams):
     llm: Use Settings.llm by default.
     """
 
-    nodes: Optional[int] = None
-    node_template: Optional[str] = None
-    combine_template: Optional[str] = None
-    is_text_node_only: Optional[bool] = None
+    nodes: Optional[int] = 5
+    node_template: Optional[str] = DEFAULT_TITLE_NODE_TEMPLATE
+    combine_template: Optional[str] = DEFAULT_TITLE_COMBINE_TEMPLATE
+    is_text_node_only: Optional[bool] = False
 
 
 class DocumentContextExtractorParams(MetadataExtractorParams):
     """
     Configuration for a DocumentContextExtractor.
-    See https://docs.llamaindex.ai/en/stable/api_reference/extractors/documentcontext/
+    See https://docs.llamaindex.ai/en/stable/examples/metadata_extraction/DocumentContextExtractor/
 
     llm: Use Settings.llm by default.
     docstore: NOTE!!! This is required but will be provided by the transformation helper function.
@@ -283,10 +290,10 @@ class DocumentContextExtractorParams(MetadataExtractorParams):
 
     max_context_length: int
     # docstore: KVDocumentStore  # NOTE: This is required but will be provided by the transformation helper function.
-    oversized_document_strategy: Optional[str] = None
-    max_output_tokens: Optional[int] = None
-    key: Optional[str] = None
-    prompt: Optional[str] = None
+    oversized_document_strategy: Optional[str] = "warn"
+    max_output_tokens: Optional[int] = 100
+    key: Optional[str] = "context"
+    prompt: Optional[str] = DocumentContextExtractor.SUCCINCT_CONTEXT_PROMPT
 
 
 class TransformationConfig(BaseModel):
@@ -322,12 +329,14 @@ def prepare_transformations(
     result = []
     for t in transformations:
         t = t.lower()
-        transformation_class = getattr(PROVIDED_TRANSFORMATIONS, t)
+        transformation_class = PROVIDED_TRANSFORMATIONS.get(t)
+        if transformation_class is None:
+            raise ValueError(f"Transformation {t} is not supported.")
         transformation_config = getattr(config, t, None)
         if transformation_config:
             if t == NodeParser.SEMANTIC_SPLITTER:
                 # Use Settings.embed_model instead of the default OpenAI embedding model.
-                transformation = transformation_class(
+                transformation = transformation_class.from_defaults(
                     **{
                         **transformation_config.dict(),
                         **{"embed_model": Settings.embed_model},
@@ -335,14 +344,21 @@ def prepare_transformations(
                 )
             elif t == MetadataExtractor.DOCUMENT_CONTEXT:
                 # Provide docstore
-                transformation = transformation_class(
+                transformation = transformation_class.from_defaults(
                     **{
                         **transformation_config.dict(),
                         **{"docstore": IndexManager().base_index.docstore},
                     }
                 )
             else:
-                transformation = transformation_class(**transformation_config.dict())
+                try:
+                    transformation = transformation_class.from_defaults(
+                        **transformation_config.dict()
+                    )
+                except AttributeError:
+                    transformation = transformation_class(
+                        **transformation_config.dict()
+                    )
         else:
             transformation = transformation_class()
         result.append(transformation)

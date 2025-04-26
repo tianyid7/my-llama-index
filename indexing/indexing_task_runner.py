@@ -107,6 +107,7 @@ class IndexingTaskRunner:
 
     @log_function_time
     def run(self):
+        logger.info("Starting indexing task...")
         documents = self.reader.load_data()
         result = self.pipeline.run(
             documents=documents, show_progress=True, num_workers=self.config.num_workers

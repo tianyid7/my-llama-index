@@ -26,6 +26,8 @@ def prepare_reader(
     """
     Prepare the transformations for the pipeline.
     """
-    reader_class = getattr(PROVIDED_READERS, reader)
+    reader_class = PROVIDED_READERS.get(reader)
+    if reader_class is None:
+        raise ValueError(f"Reader {reader} is not supported.")
     reader = reader_class(**reader_config)
     return reader

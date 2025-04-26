@@ -4,6 +4,9 @@ import os
 from dotenv import load_dotenv
 from llama_index.llms.openai import OpenAI
 
+from app.settings import init_settings
+from common.utils import load_yaml_file
+from indexing.indexing_task_runner import IndexingTaskConfig, IndexingTaskRunner
 from rag.index_manager import IndexManager
 
 logging.basicConfig(level=logging.INFO)
@@ -58,6 +61,20 @@ def generate_index_to_pgvector():
     )
     documents = reader.load_data()
     IndexManager().create_vector_index_with_docs(documents)
+
+
+def generate_index_to_pgvector_via_indexing_task():
+    """
+    Index the documents in the data directory.
+    """
+    load_dotenv()
+    init_settings()
+
+    logger.info("Creating new index")
+    conf = load_yaml_file("indexing/tasks/default.yaml")
+    print(conf)
+    # load the documents and create the index
+    IndexingTaskRunner(IndexingTaskConfig(**conf)).run()
 
 
 def generate_ui_for_workflow():

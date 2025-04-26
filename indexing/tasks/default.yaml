@@ -1,0 +1,16 @@
+reader: simple_directory
+reader_config:
+  input_dir: data
+  recursive: true
+transformations:
+  - hierarchical
+  - summary
+  - questions_answered
+transformation_config:
+  hierarchical:
+    chunk_sizes: [1024, 512, 256]
+  summary:
+    summaries: ["self"]
+  questions_answered:
+    questions: 3
+num_workers: 4
