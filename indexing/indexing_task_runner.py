@@ -106,7 +106,11 @@ class IndexingTaskRunner:
         logger.info(f"Built the ingestion pipeline successfully!")
 
     @log_function_time
-    def run(self):
+    def run(self, disable_cache: bool = False):
+        if disable_cache:
+            logger.info("Disabling cache for the indexing task...")
+            self.pipeline.disable_cache = True
+
         logger.info("Starting indexing task...")
         documents = self.reader.load_data()
         result = self.pipeline.run(
