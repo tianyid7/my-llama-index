@@ -363,4 +363,6 @@ def prepare_transformations(
             transformation = transformation_class()
         result.append(transformation)
 
+    result.append(Settings.embed_model)
+
     return result
