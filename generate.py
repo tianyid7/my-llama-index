@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 
@@ -72,7 +73,7 @@ def generate_index_to_pgvector_via_indexing_task():
 
     logger.info("Creating new index")
     conf = load_yaml_file("indexing/tasks/default.yaml")
-    print(conf)
+    print(json.dumps(conf, indent=4))
     # load the documents and create the index
     IndexingTaskRunner(IndexingTaskConfig(**conf)).run()
 
