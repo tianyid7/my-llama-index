@@ -107,10 +107,14 @@ class IndexingTaskRunner:
             transformations=transformations,
             vector_store=vector_index.vector_store,
             docstore=vector_index.docstore,
+            # use cache only if parallelism is not activated (num_worker < 2)
+            # due to the issue "TypeError: cannot pickle '_thread.lock' object"
             cache=IngestionCache(
                 cache=RedisCache.from_host_and_port(REDIS_HOST, REDIS_PORT),
                 collection=CACHE_COLLECTION_NAME,
-            ),
+            )
+            if self.config.num_workers == 1
+            else None,
             docstore_strategy=DOCSTORE_STRATEGY,
         )
         self.pipeline = pipeline
@@ -126,9 +130,7 @@ class IndexingTaskRunner:
         documents = self.reader.load_data()
         logger.info(f"Loaded {len(documents)} documents from the reader.")
         result = self.pipeline.run(
-            documents=documents,
-            show_progress=True,
-            # num_workers=self.config.num_workers  # TODO: fix this "TypeError: cannot pickle '_thread.lock' object"
+            documents=documents, show_progress=True, num_workers=self.config.num_workers
         )
 
         logger.info(
