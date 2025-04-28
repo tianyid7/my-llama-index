@@ -1,4 +1,5 @@
 import logging
+from typing import List
 
 import Stemmer
 from llama_index.core import (
@@ -7,6 +8,7 @@ from llama_index.core import (
     VectorStoreIndex,
     get_response_synthesizer,
 )
+from llama_index.core.postprocessor.types import BaseNodePostprocessor
 from llama_index.core.response_synthesizers import ResponseMode
 from llama_index.core.retrievers import AutoMergingRetriever, QueryFusionRetriever
 from llama_index.core.retrievers.fusion_retriever import FUSION_MODES
@@ -157,12 +159,24 @@ class QueryEngineManager:
         Creates a llamaindex QueryEngine given a
         VectorStoreIndex and hyperparameters
         """
-        llm = Settings.llm
+        # Add Node Postprocessors (if any)
+        node_postprocessors = self._add_node_postprocessors()
 
+        query_engine = AsyncRetrieverQueryEngine.from_args(
+            self._create_retriever(),
+            response_synthesizer=self._create_synthesizer(),
+            node_postprocessors=node_postprocessors,
+        )
+
+        # Add Query Transformation (if any)
+        transform_query_engine = self._add_query_transformations(query_engine)
+
+        return transform_query_engine or query_engine
+
+    def _add_node_postprocessors(self) -> List[BaseNodePostprocessor]:
         node_postprocessors = []
-
         if self.use_node_rerank:
-            reranker_llm = llm  # TODO: use a different LLM for reranking
+            reranker_llm = Settings.llm  # TODO: use a different LLM for reranking
             choice_select_prompt = PromptTemplate(
                 self.prompts.choice_select_prompt_tmpl
             )
@@ -178,23 +192,26 @@ class QueryEngineManager:
             presidio_analyzer = PresidioPIINodePostprocessor()
             node_postprocessors.append(presidio_analyzer)
 
-        query_engine = AsyncRetrieverQueryEngine.from_args(
-            self._create_retriever(),
-            response_synthesizer=self._create_synthesizer(),
-            node_postprocessors=node_postprocessors,
-        )
+        return node_postprocessors
 
+    def _add_query_transformations(
+        self, query_engine
+    ) -> AsyncTransformQueryEngine | None:
+        """Adds query transformations to the query engine.
+        see https://docs.llamaindex.ai/en/stable/examples/query_transformations/query_transform_cookbook/
+        """
         if self.use_hyde:
             hyde_prompt = PromptTemplate(self.prompts.hyde_prompt_tmpl)
             hyde = AsyncHyDEQueryTransform(
                 include_original=True, hyde_prompt=hyde_prompt
             )
-            query_engine = AsyncTransformQueryEngine(
+            transform_query_engine = AsyncTransformQueryEngine(
                 query_engine=query_engine,
                 query_transform=hyde,
             )
-
-        return query_engine
+            return transform_query_engine
+        else:
+            return
 
     def get_query_engine_tool(self, name, description):
         """
