@@ -1,7 +1,6 @@
 from typing import Optional
 
 from llama_index.core.agent.workflow import AgentWorkflow
-from llama_index.core.evaluation import FaithfulnessEvaluator
 from llama_index.core.settings import Settings
 from llama_index.llms.openai import OpenAI
 from llama_index.server.api.models import ChatRequest
@@ -15,9 +14,6 @@ query_tool = QueryEngineManager(base_index=index).get_query_engine_tool(
     name="query_tool",
     description="Use this tool to retrieve information about the text corpus from an index.",
 )
-
-# define evaluator
-evaluator = FaithfulnessEvaluator(llm=Settings.llm)
 
 
 def create_workflow(chat_request: Optional[ChatRequest] = None) -> AgentWorkflow:
