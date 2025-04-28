@@ -31,8 +31,6 @@ logger = logging.getLogger(__name__)
 
 @singleton
 class QueryEngineManager:
-    query_engine: AsyncRetrieverQueryEngine | None = None
-
     def __init__(
         self,
         base_index: VectorStoreIndex | None = None,
