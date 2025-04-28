@@ -1,4 +1,6 @@
 # define evaluator
+import os
+
 import nest_asyncio
 import pandas as pd
 from llama_index.core import Settings, SimpleDirectoryReader
@@ -18,7 +20,7 @@ nest_asyncio.apply()
 # Refer to https://docs.llamaindex.ai/en/stable/examples/evaluation/batch_eval/
 
 pd.set_option("display.max_colwidth", 0)
-DATA_DIR = "../data"
+DATA_DIR = f"{os.getcwd()}/data"
 llm = Settings.llm
 
 
@@ -73,7 +75,7 @@ def inspect_results(key, results) -> float:
     return score
 
 
-if __name__ == "__main__":
+def run():
     import asyncio
 
     results = asyncio.run(evaluate())
