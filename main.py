@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from llama_index.server import LlamaIndexServer, UIConfig
 
 from app.settings import init_settings
-from app.workflow import create_workflow, create_workflow_v1
+from app.workflow import create_workflow
 
 logger = logging.getLogger("uvicorn.debug")
 
@@ -18,7 +18,7 @@ def create_app():
     env = os.environ.get("APP_ENV")
 
     app = LlamaIndexServer(
-        workflow_factory=create_workflow_v1,  # A factory function that creates a new workflow for each request
+        workflow_factory=create_workflow,  # A factory function that creates a new workflow for each request
         ui_config=UIConfig(
             component_dir=COMPONENT_DIR,
             app_title="The Chatbot",
