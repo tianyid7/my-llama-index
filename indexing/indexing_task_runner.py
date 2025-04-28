@@ -54,6 +54,13 @@ class IndexingTaskConfig(BaseModel):
     Number of workers to use for the ingestion task.
     """
 
+    runner: str = "default"
+    """
+    Runner to use for the indexing task. Value can be default or ray.
+    default: use the default runner by llama_index ingestion pipeline
+    ray: use the ray data to achieve the parallelism
+    """
+
 
 class IndexingTaskRunner:
     """
@@ -65,9 +72,13 @@ class IndexingTaskRunner:
 
         self.reader = None
         self.pipeline: Optional[IngestionPipeline] = None
-        self._build()
+        if self.config.runner == "ray":
+            raise NotImplementedError(
+                "Ray runner is not implemented yet. Please use the default runner."
+            )
+        self._build_default_runner()
 
-    def _build(self):
+    def _build_default_runner(self):
         """
         Build the reader and ingestion pipeline
         """
