@@ -11,7 +11,7 @@ INDEX_STORE = os.getenv("INDEX_STORE", "redis")
 PGVECTOR_CONN_STR = os.getenv(
     "PGVECTOR_CONN_STR", "postgresql://postgres:postgres@localhost:5431/vectordb"
 )
-PGVECTOR_TABLE = os.getenv("PGVECTOR_TABLE", "document")
+PGVECTOR_TABLE = os.getenv("PGVECTOR_TABLE", "index")
 HYBRID_SEARCH_ENABLED = os.getenv("HYBRID_SEARCH_ENABLED", "false") == "true"
 EMBED_DIM = os.getenv("EMBED_DIM", 1536)
 
