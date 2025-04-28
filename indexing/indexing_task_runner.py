@@ -113,8 +113,11 @@ class IndexingTaskRunner:
 
         logger.info("Starting indexing task...")
         documents = self.reader.load_data()
+        logger.info(f"Loaded {len(documents)} documents from the reader.")
         result = self.pipeline.run(
-            documents=documents, show_progress=True, num_workers=self.config.num_workers
+            documents=documents,
+            show_progress=True,
+            # num_workers=self.config.num_workers  # TODO: fix this "TypeError: cannot pickle '_thread.lock' object"
         )
 
         logger.info(
