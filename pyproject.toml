@@ -7,8 +7,7 @@ authors = [ "Marcus Schiesser <mail@marcusschiesser.de>" ]
 readme = "README.md"
 
 [tool.poetry.scripts]
-generate = "generate:generate_index"
-"generate:index" = "generate:generate_index"
+generate = "generate:generate_index_to_pgvector_via_indexing_task"
 "generate:pgvector_index" = "generate:generate_index_to_pgvector_via_indexing_task"
 "generate:ui" = "generate:generate_ui_for_workflow"
 dev = "main:run('dev')"
