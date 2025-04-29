@@ -13,13 +13,18 @@ poetry install
 Then check the parameters that have been pre-configured in the `.env` file in this directory.
 Make sure you have set the `OPENAI_API_KEY` for the LLM.
 
-Second, generate the embeddings of the documents in the `./data` directory:
+Second, start databases in docker compose.
+```shell
+docker compose up -d
+```
+
+Third, generate the embeddings of the documents in the `./data` directory. This will store embeddings in the vector database:
 
 ```shell
 poetry run generate
 ```
 
-Third, run the development server:
+Lastly, run the development server:
 
 ```shell
 poetry run dev
