@@ -39,7 +39,7 @@ class QueryEngineManager:
         qa_index: VectorStoreIndex | None = None,
         use_refine: bool = True,
         similarity_top_k: int = 5,
-        retrieval_strategy: str = "auto_merging",
+        retrieval_strategy: str = "baseline",
         qa_followup: bool = False,
         hybrid_retrieval: bool = False,
         use_node_rerank: bool = False,

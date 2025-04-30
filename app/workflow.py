@@ -5,9 +5,11 @@ from llama_index.core.settings import Settings
 from llama_index.llms.openai import OpenAI
 from llama_index.server.api.models import ChatRequest
 
+from app.settings import init_settings
 from rag.index_manager import IndexManager
 from rag.query_engine_manager import QueryEngineManager
 
+init_settings()  # Initialize RAG settings. Must be placed at the beginning of RAG program lifecycle.
 index = IndexManager().base_index
 
 query_tool = QueryEngineManager(base_index=index).get_query_engine_tool(

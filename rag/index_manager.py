@@ -45,6 +45,7 @@ class IndexManager:
             f"--> Vector Store: {self.storage_context.vector_store.__class__.__name__} \n"
             f"--> Doc Store: {self.storage_context.docstore.__class__.__name__} \n"
             f"--> Index Store: {self.storage_context.index_store.__class__.__name__} \n"
+            f"--> Embed Model: {self.embed_model.__class__.__name__}({self.embed_model.model_name}) \n"
         )
 
         logger.info(f"Created a base vector store index:\n{vector_store_index.summary}")
