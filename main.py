@@ -4,11 +4,16 @@ import subprocess
 
 from dotenv import load_dotenv
 from llama_index.server import LlamaIndexServer, UIConfig
+from traceloop.sdk import Traceloop
 
 from app.settings import init_settings
 from app.workflow import create_workflow
 
 logger = logging.getLogger("uvicorn.debug")
+load_dotenv()
+init_settings()
+# Setting up Traceloop for instrumentation
+Traceloop.init()
 
 # A path to a directory where the customized UI code is stored
 COMPONENT_DIR = "frontend/components"
@@ -31,8 +36,6 @@ def create_app():
     return app
 
 
-load_dotenv()
-init_settings()
 app = create_app()
 
 

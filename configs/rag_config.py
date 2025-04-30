@@ -21,9 +21,9 @@ REDIS_PORT = os.getenv("REDIS_PORT", 6379)
 # namespace if using Redis as a document store
 DOC_STORE_NAMESPACE = os.getenv("DOC_STORE_NAMESPACE", "llama_index_doc")
 # namespace if using Redis as an index store
-INDEX_STORE_NAMESPACE = os.getenv("INDEX_STORE_NAMESPACE", "llama_index")
+INDEX_STORE_NAMESPACE = os.getenv("INDEX_STORE_NAMESPACE", "llama_index_index")
 # collection name if using Redis as cache in ingestion pipeline
-CACHE_COLLECTION_NAME = os.getenv("CACHE_COLLECTION_NAME", "redis_cache")
+CACHE_COLLECTION_NAME = os.getenv("CACHE_COLLECTION_NAME", "llama_index_indexing_cache")
 
 # ********* ingestion pipeline configs ********* #
 # docstore strategy for the ingestion pipeline, can only be "duplicates_only", "upserts", and "upserts_and_delete"
