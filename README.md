@@ -13,6 +13,13 @@ poetry install
 Then check the parameters that have been pre-configured in the `.env` file in this directory.
 Make sure you have set the `OPENAI_API_KEY` for the LLM.
 
+If want to use LangSmith for observability, add below Traceloop env vars to allow tracings to be sent to LangSmith:
+```shell
+TRACELOOP_BASE_URL=https://api.smith.langchain.com/otel
+TRACELOOP_HEADERS="x-api-key=<LANGSMITH_API_KEY>,Langsmith-Project=<LANGSMITH_PROJECT_NAME>"
+````
+Refer to [LangSmith docs](https://docs.smith.langchain.com/observability/how_to_guides/trace_with_opentelemetry#logging-traces-with-the-traceloop-sdk) for more details.
+
 Second, start databases in docker compose.
 ```shell
 docker compose up -d
