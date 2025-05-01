@@ -76,6 +76,7 @@ class IndexingTaskRunner:
             raise NotImplementedError(
                 "Ray runner is not implemented yet. Please use the default runner."
             )
+        self.base_index = IndexManager().base_index
         self._build_default_runner()
 
     def _build_default_runner(self):
@@ -102,11 +103,10 @@ class IndexingTaskRunner:
         """
         Build the ingestion pipeline.
         """
-        vector_index = IndexManager().base_index
         pipeline = IngestionPipeline(
             transformations=transformations,
-            vector_store=vector_index.vector_store,
-            docstore=vector_index.docstore,
+            vector_store=self.base_index.vector_store,
+            docstore=self.base_index.docstore,
             # use cache only if parallelism is not activated (num_worker < 2)
             # due to the issue "TypeError: cannot pickle '_thread.lock' object"
             cache=IngestionCache(
@@ -132,6 +132,16 @@ class IndexingTaskRunner:
         result = self.pipeline.run(
             documents=documents, show_progress=True, num_workers=self.config.num_workers
         )
+
+        if not result:
+            logger.warning("No nodes were created from the documents.")
+            return
+
+        if "hierarchical" in self.config.transformations:
+            logger.info(
+                "HierarchicalNodeParser is applied. Storing nodes in docstore for auto_merging retriever..."
+            )
+            self.base_index.docstore.add_documents(result)
 
         logger.info(
             f"Indexing task completed successfully. {len(result)} nodes indexed."
