@@ -14,4 +14,4 @@ transformation_config:
   questions_answered:
     questions: 3
 num_workers: 4
-graph_index: true
+graph_index: false  # whether to load data into a graph index
