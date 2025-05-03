@@ -6,6 +6,7 @@ import os
 VECTOR_DB = os.getenv("VECTOR_DB", "pgvector")
 DOC_STORE = os.getenv("DOC_STORE", "redis")
 INDEX_STORE = os.getenv("INDEX_STORE", "redis")
+GRAPH_STORE = os.getenv("GRAPH_STORE", "memgraph")
 
 # ********* pgvector configs ********* #
 PGVECTOR_CONN_STR = os.getenv(
@@ -24,6 +25,11 @@ DOC_STORE_NAMESPACE = os.getenv("DOC_STORE_NAMESPACE", "llama_index_doc")
 INDEX_STORE_NAMESPACE = os.getenv("INDEX_STORE_NAMESPACE", "llama_index_index")
 # collection name if using Redis as cache in ingestion pipeline
 CACHE_COLLECTION_NAME = os.getenv("CACHE_COLLECTION_NAME", "llama_index_indexing_cache")
+
+# ********* memgraph configs ********* #
+MEMGRAPH_URL = os.getenv("MEMGRAPH_URL", "bolt://localhost:7687")
+MEMGRAPH_USER = os.getenv("MEMGRAPH_USER", "memgraph")
+MEMGRAPH_PASSWORD = os.getenv("MEMGRAPH_PASSWORD", "memgraph")
 
 # ********* ingestion pipeline configs ********* #
 # docstore strategy for the ingestion pipeline, can only be "duplicates_only", "upserts", and "upserts_and_delete"

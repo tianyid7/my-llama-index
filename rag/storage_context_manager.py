@@ -11,9 +11,13 @@ from configs.rag_config import (
     DOC_STORE,
     DOC_STORE_NAMESPACE,
     EMBED_DIM,
+    GRAPH_STORE,
     HYBRID_SEARCH_ENABLED,
     INDEX_STORE,
     INDEX_STORE_NAMESPACE,
+    MEMGRAPH_PASSWORD,
+    MEMGRAPH_URL,
+    MEMGRAPH_USER,
     PGVECTOR_CONN_STR,
     PGVECTOR_TABLE,
     REDIS_HOST,
@@ -35,6 +39,7 @@ class StorageContextManager:
         self.vector_store = None
         self.docstore = None
         self.index_store = None
+        self.property_graph_store = None
 
         self._storage_context = self._create_storage_context()
 
@@ -101,8 +106,18 @@ class StorageContextManager:
                 "No vector store created. Please check your configuration 'VECTOR_DB'."
             )
 
+        if GRAPH_STORE == "memgraph":
+            from llama_index.graph_stores.memgraph import MemgraphPropertyGraphStore
+
+            self.property_graph_store = MemgraphPropertyGraphStore(
+                url=MEMGRAPH_URL,
+                username=MEMGRAPH_USER,
+                password=MEMGRAPH_PASSWORD,
+            )
+
         return StorageContext.from_defaults(
             vector_store=self.vector_store,
             docstore=self.docstore,
             index_store=self.index_store,
+            property_graph_store=self.property_graph_store,
         )

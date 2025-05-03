@@ -43,12 +43,39 @@ services:
     command: redis-server --save "" --appendonly no
     networks:
       - llamaindex
+  memgraph:
+    image: memgraph/memgraph-mage:latest
+    container_name: memgraph-mage
+    ports:
+      - "7687:7687"
+      - "7444:7444"
+    command: [ "--log-level=TRACE" ]
+    volumes:
+      - mg_lib:/var/lib/memgraph
+      - mg_log:/var/log/memgraph
+    environment:
+      - MEMGRAPH_USER=${MEMGRAPH_USER:-memgraph}
+      - MEMGRAPH_PASSWORD=${MEMGRAPH_PASSWORD:-memgraph}
+
+  memgraph-lab:
+    image: memgraph/lab:latest
+    container_name: memgraph-lab
+    ports:
+      - "3000:3000"
+    depends_on:
+      - memgraph
+    environment:
+      - QUICK_CONNECT_MG_HOST=memgraph-mage
+      - QUICK_CONNECT_MG_PORT=7687
 
 volumes:
   pgvector_data:
     driver: local
   postgres_data:
     driver: local
+  mg_lib:
+  mg_log:
+  mg_etc:
 
 networks:
   llamaindex:

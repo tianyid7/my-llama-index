@@ -1,7 +1,8 @@
 import logging
 from typing import List, Optional
 
-from llama_index.core import Document, Settings, VectorStoreIndex
+from llama_index.core import Document, PropertyGraphIndex, Settings, VectorStoreIndex
+from llama_index.core.indices.property_graph import SchemaLLMPathExtractor
 from llama_index.core.schema import BaseNode
 
 from common.decorators import singleton
@@ -24,6 +25,8 @@ class IndexManager:
 
         self._base_index = self._create_base_vector_index()
 
+        self._property_graph_index = self._create_property_graph_index()
+
     @property
     def base_index(self) -> VectorStoreIndex:
         """
@@ -32,6 +35,15 @@ class IndexManager:
         if self._base_index is None:
             raise ValueError("Base index is not initialized.")
         return self._base_index
+
+    @property
+    def property_graph_index(self):
+        """
+        Returns the property graph index.
+        """
+        if self._property_graph_index is None:
+            raise ValueError("Property graph index is not initialized.")
+        return self._property_graph_index
 
     def _create_base_vector_index(self) -> VectorStoreIndex:
         """
@@ -92,3 +104,20 @@ class IndexManager:
         )
 
         return vector_store_index
+
+    def _create_property_graph_index(self):
+        property_graph_index = PropertyGraphIndex(
+            nodes=[],
+            embed_model=self.embed_model,  # Omittable. If not provided, the default embed model will be used.
+            kg_extractors=[SchemaLLMPathExtractor(llm=Settings.llm)],
+            storage_context=self.storage_context,
+            property_graph_store=self.storage_context.property_graph_store,
+        )
+
+        property_graph_index.summary = (
+            f"--> Property Graph Store: {self.storage_context.property_graph_store.__class__.__name__} \n"
+            f"--> Embed Model: {self.embed_model.__class__.__name__}({self.embed_model.model_name}) \n"
+        )
+        logger.info(f"Created a property graph index:\n{property_graph_index.summary}")
+
+        return property_graph_index
