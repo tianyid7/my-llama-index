@@ -11,10 +11,14 @@ from rag.query_engine_manager import QueryEngineManager
 
 init_settings()  # Initialize RAG settings. Must be placed at the beginning of RAG program lifecycle.
 index = IndexManager().base_index
+property_graph_index = IndexManager().property_graph_index
 
-query_tool = QueryEngineManager(base_index=index).get_query_engine_tool(
+query_tool = QueryEngineManager(
+    base_index=index, property_graph_index=property_graph_index
+).get_query_engine_tool(
     name="query_tool",
     description="Use this tool to retrieve information about the text corpus from an index.",
+    index_type="vector",
 )
 
 

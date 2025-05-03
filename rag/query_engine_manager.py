@@ -4,6 +4,7 @@ from typing import List
 import Stemmer
 from llama_index.core import (
     PromptTemplate,
+    PropertyGraphIndex,
     Settings,
     VectorStoreIndex,
     get_response_synthesizer,
@@ -36,6 +37,7 @@ class QueryEngineManager:
     def __init__(
         self,
         base_index: VectorStoreIndex | None = None,
+        property_graph_index: PropertyGraphIndex | None = None,
         qa_index: VectorStoreIndex | None = None,
         use_refine: bool = True,
         similarity_top_k: int = 5,
@@ -59,6 +61,9 @@ class QueryEngineManager:
         self.base_index = base_index
         self.qa_index = qa_index
 
+        # Property Graph Index
+        self.property_graph_index = property_graph_index
+
         # Query engine hyperparameters
         self.use_node_rerank = use_node_rerank
         self.use_hyde = use_hyde
@@ -67,6 +72,11 @@ class QueryEngineManager:
         self.prompts = Prompts()
 
         self._query_engine = self._create_query_engine()
+        self._property_graph_query_engine = (
+            self.property_graph_index.as_query_engine()
+            if self.property_graph_index
+            else None
+        )
 
         logger.info("Initiated Query Engine Manager")
 
@@ -78,6 +88,15 @@ class QueryEngineManager:
         if self._query_engine is None:
             raise ValueError("Query engine not initialized.")
         return self._query_engine
+
+    @property
+    def property_graph_query_engine(self):
+        """
+        Returns the property graph query engine.
+        """
+        if self._property_graph_query_engine is None:
+            raise ValueError("Property graph query engine not initialized.")
+        return self._property_graph_query_engine
 
     def _create_retriever(self):
         base_retriever = self.base_index.as_retriever(
@@ -213,17 +232,28 @@ class QueryEngineManager:
         else:
             return
 
-    def get_query_engine_tool(self, name, description):
+    def get_query_engine_tool(
+        self, name, description, index_type: str = "vector"
+    ) -> QueryEngineTool:
         """
         Returns a llamaindex QueryEngineTool
         """
-        if self.query_engine is None:
+        if index_type == "graph":
+            query_engine = self.property_graph_query_engine
+        elif index_type == "vector":
+            query_engine = self.query_engine
+        else:
+            raise ValueError(
+                f"Invalid index type: {index_type}. Supported index types are: graph, vector."
+            )
+
+        if query_engine is None:
             raise ValueError(
                 "Query engine not created. Call _create_query_engine first."
             )
 
         query_engine_tool = QueryEngineTool.from_defaults(
-            query_engine=self.query_engine,
+            query_engine=query_engine,
             name=name,
             description=description,
         )
