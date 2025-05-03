@@ -139,14 +139,29 @@ class IndexingTaskRunner:
         logger.info(f"Built the ingestion pipeline successfully!")
 
     @log_function_time
-    def run(self, disable_cache: bool = False):
+    def run(self):
+        """
+        Run the indexing task. This will load the documents from the reader and create the index.
+        If the graph index is enabled, the graph index will be created, otherwise the base vector index is created.
+        """
+        documents = self.reader.load_data()
+        logger.info(f"Loaded {len(documents)} documents from the reader.")
+        logger.info("Running the indexing task...")
+        # If the graph index is enabled, the graph index will be created after the base vector index is created.
+        if self.config.graph_index:
+            logger.info("Graph index is enabled. Creating the property graph index...")
+            self._create_property_graph_index(documents)
+        else:
+            logger.info(
+                "Graph index is not enabled. Only the base vector index will be created."
+            )
+            self._run_ingestion_pipeline(documents)
+
+    def _run_ingestion_pipeline(self, documents, disable_cache: bool = False):
         if disable_cache:
             logger.info("Disabling cache for the indexing task...")
             self.pipeline.disable_cache = True
 
-        logger.info("Starting indexing task...")
-        documents = self.reader.load_data()
-        logger.info(f"Loaded {len(documents)} documents from the reader.")
         result = self.pipeline.run(
             documents=documents, show_progress=True, num_workers=self.config.num_workers
         )
@@ -165,10 +180,9 @@ class IndexingTaskRunner:
             f"Indexing task completed successfully. {len(result)} nodes indexed."
         )
 
-        # If the graph index is enabled, the graph index will be created after the base vector index is created.
-        if self.config.graph_index:
-            self.property_graph_index.from_documents(
-                documents,
-                property_graph_store=self.property_graph_index.property_graph_store,
-                show_progress=True,
-            )
+    def _create_property_graph_index(self, documents):
+        self.property_graph_index.from_documents(
+            documents,
+            property_graph_store=self.property_graph_index.property_graph_store,
+            show_progress=True,
+        )
