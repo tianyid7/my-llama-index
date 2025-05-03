@@ -18,7 +18,7 @@ query_tool = QueryEngineManager(
 ).get_query_engine_tool(
     name="query_tool",
     description="Use this tool to retrieve information about the text corpus from an index.",
-    index_type="vector",
+    index_type="vector",  # Choose between vector or graph index
 )
 
 
