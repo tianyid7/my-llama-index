@@ -21,13 +21,16 @@ python-dotenv = "^1.0.0"
 aiostream = "==0.5.2"
 celery = "==5.5.1"
 boto3 = "==1.38.2"
-traceloop-sdk = "0.40.2"
-opentelemetry-instrumentation-redis = "0.53b1"
 pydantic = "==2.11.3" # pydantic v2
 llama-index-core = "==0.12.28"
 llama-index-server = "==0.1.14"
 llama-index-retrievers-bm25 = "==0.5.2"
 llama-index-postprocessor-presidio = "==0.3.0"
+
+[tool.poetry.group.instrumentation.dependencies]
+prometheus-fastapi-instrumentator = "7.1.0"
+opentelemetry-instrumentation-redis = "0.53b1"
+traceloop-sdk = "0.40.2"
 
 [tool.poetry.group.llama-index-stores.dependencies]
 llama-index-vector-stores-postgres = "==0.4.2"
