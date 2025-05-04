@@ -4,6 +4,7 @@ import subprocess
 
 from dotenv import load_dotenv
 from llama_index.server import LlamaIndexServer, UIConfig
+from prometheus_fastapi_instrumentator import Instrumentator
 from traceloop.sdk import Traceloop
 
 from app.settings import init_settings
@@ -29,6 +30,7 @@ def create_app():
             app_title="The Chatbot",
         ),
         env=env,
+        title="RAG Server",
         logger=logger,
     )
     # You can also add custom routes to the app
@@ -37,6 +39,9 @@ def create_app():
 
 
 app = create_app()
+
+# Initialize Prometheus and instrument the app
+Instrumentator().instrument(app).expose(app)
 
 
 def run(env: str):
