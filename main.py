@@ -9,6 +9,9 @@ from traceloop.sdk import Traceloop
 
 from app.settings import init_settings
 from app.workflow import create_workflow
+from backend.src.auth.constants import AuthType
+from backend.src.auth.routes import router as auth_router
+from configs.app_config import AUTH_TYPE
 
 logger = logging.getLogger("uvicorn.debug")
 load_dotenv()
@@ -35,6 +38,12 @@ def create_app():
     )
     # You can also add custom routes to the app
     app.add_api_route("/api/health", lambda: {"message": "OK"}, status_code=200)
+
+    if AUTH_TYPE == AuthType.DISABLED:
+        pass
+
+    if AUTH_TYPE == AuthType.BASIC:
+        app.include_router(auth_router, prefix="/auth", tags=["auth"])
     return app
 
 
